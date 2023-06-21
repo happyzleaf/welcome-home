@@ -25,27 +25,27 @@ int print_random_art(int fd, struct data *data, const char *assets_path) {
     int rows;
     get_terminal_size(fd, &cols, &rows);
 
-    int minDeltaIndex = -1;
-    int minDelta = INT_MAX;
+    int min_delta_index = -1;
+    int min_delta = INT_MAX;
     for (int i = 0; i < data->cache_len; ++i) {
         int deltaX = cols - data->cache[i]->cols;
         int deltaY = rows - data->cache[i]->rows;
         int delta = deltaX * deltaX + deltaY * deltaY;
 
-        if (minDelta > delta) {
-            minDeltaIndex = i;
-            minDelta = delta;
+        if (min_delta > delta) {
+            min_delta_index = i;
+            min_delta = delta;
         }
     }
 
-    size_t path_len = strnlen(assets_path, PATH_MAX) + strnlen(data->cache[minDeltaIndex]->asset, PATH_MAX) + 2;
+    size_t path_len = strnlen(assets_path, PATH_MAX) + strnlen(data->cache[min_delta_index]->asset, PATH_MAX) + 2;
     if (path_len > PATH_MAX) {
         fprintf(stderr, "ERROR: Asset path exceeded PATH_MAX.");
         return 0;
     }
 
     char *path = malloc(path_len);
-    snprintf(path, path_len, "%s/%s", assets_path, data->cache[minDeltaIndex]->asset);
+    snprintf(path, path_len, "%s/%s", assets_path, data->cache[min_delta_index]->asset);
 
     FILE *in = fopen(path, "r");
     if (in == NULL) {
