@@ -20,15 +20,21 @@ size_t get_path_last_mod_time(const char *path) {
 }
 
 int main(int argc, char **argv) {
+    int always = 0;
     int debug = 0;
 
     char opt;
-    while ((opt = getopt(argc, argv, "d")) != -1) {
-        if (opt == 'd') {
-            debug = 1;
-        } else {
-            fprintf(stdout, "USAGE: %s [-d]\n", argc == 0 ? "welcome-home" : argv[0]);
-            return 1;
+    while ((opt = getopt(argc, argv, "ad")) != -1) {
+        switch (opt) {
+            case 'a':
+                always = 1;
+                break;
+            case 'd':
+                debug = 1;
+                break;
+            default:
+                fprintf(stdout, "USAGE: %s [-d]\n", argc == 0 ? "welcome-home" : argv[0]);
+                return 1;
         }
     }
 
@@ -40,12 +46,16 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    if (debug) {
+        fprintf(stdout, "DEBUG: data = '%s'.\n", data_path);
+    }
+
     struct data *data = read_or_create_data(data_path, ".data");
     if (data == NULL) {
         return 1;
     }
 
-    if (data->last_print_time > system_date) {
+    if (!always && data->last_print_time > system_date) {
         // We've already printed today
 
         // If the boot time is available in the system, we also print after a restart
@@ -64,6 +74,10 @@ int main(int argc, char **argv) {
     if (assets_path == NULL) {
         free_data(data);
         return 1;
+    }
+
+    if (debug) {
+        fprintf(stdout, "DEBUG: assets = '%s'.\n", assets_path);
     }
 
     size_t assets_last_mod_time = get_path_last_mod_time(assets_path);
