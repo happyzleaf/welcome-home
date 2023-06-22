@@ -125,6 +125,27 @@ int is_file_or_sym(const struct dirent *entry, char *path_buffer, const char *as
     return S_ISREG(st.st_mode) || S_ISLNK(st.st_mode);
 }
 
+int count_ansi_codes(const char *line, size_t max_len) {
+    int count = 0;
+
+    int escaping = 0;
+    for (int i = 0; i < max_len && line[i] != '\0'; i++) {
+        if (escaping) {
+            ++count;
+
+            if (line[i] == 'm') {
+                escaping = 0;
+            }
+        }
+
+        if (line[i] == '\033') {
+            escaping = 1;
+        }
+    }
+
+    return count;
+}
+
 int cache_data(struct data *data, const char *assets_path, time_t system_time, int debug) {
     DIR *directory = opendir(assets_path);
     if (directory == NULL) {
@@ -178,8 +199,9 @@ int cache_data(struct data *data, const char *assets_path, time_t system_time, i
 
         ssize_t line_len;
         while ((line_len = getline(&line_buffer, &line_buffer_size, file)) != -1) {
-            if (line_len > cols) {
-                cols = line_len;
+            size_t line_cols = line_len - count_ansi_codes(line_buffer, line_buffer_size);
+            if (line_cols > cols) {
+                cols = line_cols;
             }
             ++rows;
         }
@@ -204,6 +226,11 @@ int cache_data(struct data *data, const char *assets_path, time_t system_time, i
 }
 
 void print_data(FILE *out, struct data *data) {
+    if (out == NULL) {
+        fprintf(out, "NULL\n");
+        return;
+    }
+
     fprintf(out, "data {\n");
     fprintf(out, "\tlast_print_time: %zu\n", data->last_print_time);
     fprintf(out, "\tlast_cache_time: %zu\n", data->last_cache_time);
@@ -223,6 +250,10 @@ void print_data(FILE *out, struct data *data) {
 }
 
 void free_data(struct data *data) {
+    if (data == NULL) {
+        return;
+    }
+
     for (int i = 0; i < data->cache_len; ++i) {
         free(data->cache[i]->asset);
         free(data->cache[i]);

@@ -8,7 +8,7 @@ clean:
 	rm -f *.o
 
 compile:
-	gcc main.c xdg.c data.c terminal.c -o main.o
+	gcc main.c xdg.c data.c terminal.c -lm -o main.o
 
 debug:
 	./main.o -d

@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
         cache_data(data, assets_path, system_time, debug);
     }
 
-    if (!print_random_art(STDOUT_FILENO, data, assets_path)) {
+    if (!print_random_art(STDOUT_FILENO, data, assets_path, debug)) {
         free_data(data);
         return 1;
     }
