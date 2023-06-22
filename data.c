@@ -42,7 +42,7 @@ void deserialize_data(FILE *in, struct data *data) {
 struct data *read_or_create_data(const char *dir, const char *name) {
     size_t path_len = strnlen(dir, PATH_MAX) + strnlen(name, PATH_MAX) + 2;
     if (path_len > PATH_MAX) {
-        fprintf(stderr, "ERROR: Data path exceeded PATH_MAX.\n");
+        fprintf(stderr, "ERROR: Data path exceeds PATH_MAX.\n");
         return NULL;
     }
 
@@ -74,7 +74,7 @@ struct data *read_or_create_data(const char *dir, const char *name) {
 int write_data(struct data *data, const char *dir, const char *name) {
     size_t path_len = strnlen(dir, PATH_MAX) + strnlen(name, PATH_MAX) + 2;
     if (path_len > PATH_MAX) {
-        fprintf(stderr, "ERROR: Data path exceeded PATH_MAX.\n");
+        fprintf(stderr, "ERROR: Data path exceeds PATH_MAX.\n");
         return 0;
     }
 
@@ -107,9 +107,7 @@ int is_file_or_sym(const struct dirent *entry, char *path_buffer, const char *as
     size_t path_len = assets_path_len + strnlen(entry->d_name, PATH_MAX) + 2;
     if (path_len > PATH_MAX) {
         if (debug) {
-#ifdef DEBUG
             fprintf(stderr, "DEBUG: Ignoring asset '%s' as it exceeds PATH_MAX.\n", entry->d_name);
-#endif
         }
         return 0;
     }
@@ -119,9 +117,7 @@ int is_file_or_sym(const struct dirent *entry, char *path_buffer, const char *as
     struct stat st;
     if (lstat(path_buffer, &st) == -1) {
         if (debug) {
-#ifdef DEBUG
             fprintf(stderr, "DEBUG: Could not read asset '%s'.\n", entry->d_name);
-#endif
         }
         return 0;
     }
@@ -129,7 +125,7 @@ int is_file_or_sym(const struct dirent *entry, char *path_buffer, const char *as
     return S_ISREG(st.st_mode) || S_ISLNK(st.st_mode);
 }
 
-int cache_data(struct data *data, const char *assets_path, time_t system_time) {
+int cache_data(struct data *data, const char *assets_path, time_t system_time, int debug) {
     DIR *directory = opendir(assets_path);
     if (directory == NULL) {
         fprintf(stderr, "ERROR: Could not read assets directory.\n");
@@ -162,7 +158,7 @@ int cache_data(struct data *data, const char *assets_path, time_t system_time) {
     size_t line_buffer_size = 0; // I hate this variable so much
     int index = -1;
     while ((entry = readdir(directory)) != NULL) {
-        if (!is_file_or_sym(entry, path_buffer, assets_path, assets_path_len, 1)) {
+        if (!is_file_or_sym(entry, path_buffer, assets_path, assets_path_len, debug)) {
             continue;
         }
 
@@ -170,9 +166,10 @@ int cache_data(struct data *data, const char *assets_path, time_t system_time) {
 
         FILE *file = fopen(path_buffer, "r");
         if (file == NULL) {
-#ifdef DEBUG
-            fprintf(stderr, "DEBUG: Could not read asset '%s'.\n", entry->d_name);
-#endif
+            if (debug) {
+                fprintf(stderr, "DEBUG: Could not read asset '%s'.\n", entry->d_name);
+            }
+
             continue;
         }
 
@@ -216,9 +213,9 @@ void print_data(FILE *out, struct data *data) {
             fprintf(out, ",");
         }
         if (data->cache[i] == NULL) {
-            printf("\n\t\t%d: NULL", i);
+            fprintf(out, "\n\t\t%d: NULL", i);
         } else {
-            printf("\n\t\t%d: {'%s', %zu, %zu}", i, data->cache[i]->asset, data->cache[i]->cols, data->cache[i]->rows);
+            fprintf(out, "\n\t\t%d: {'%s', %zu, %zu}", i, data->cache[i]->asset, data->cache[i]->cols, data->cache[i]->rows);
         }
     }
     fprintf(out, "\n\t]\n");

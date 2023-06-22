@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #define NAME "welcome-home"
-#define DEBUG
 
 size_t get_path_last_mod_time(const char *path) {
     struct stat st;
@@ -21,10 +20,22 @@ size_t get_path_last_mod_time(const char *path) {
 }
 
 int main(int argc, char **argv) {
+    int debug = 0;
+
+    char opt;
+    while ((opt = getopt(argc, argv, "d")) != -1) {
+        if (opt == 'd') {
+            debug = 1;
+        } else {
+            fprintf(stdout, "USAGE: %s [-d]\n", argc == 0 ? "welcome-home" : argv[0]);
+            return 1;
+        }
+    }
+
     time_t system_time = time(NULL);
     time_t system_date = system_time - (system_time % 86400);
 
-    const char *data_path = get_data_path(NAME);
+    const char *data_path = get_data_path(NAME, debug);
     if (data_path == NULL) {
         return 1;
     }
@@ -40,16 +51,16 @@ int main(int argc, char **argv) {
         // If the boot time is available in the system, we also print after a restart
         struct timespec system_boot_time;
         if (clock_gettime(CLOCK_BOOTTIME, &system_boot_time) != 0 || data->last_print_time > system_boot_time.tv_sec) {
-#ifdef DEBUG
-            fprintf(stdout, "DEBUG: Welcome message not necessary.\n");
-#endif
+            if (debug) {
+                fprintf(stdout, "DEBUG: Welcome message not necessary.\n");
+            }
 
             free_data(data);
             return 0;
         }
     }
 
-    const char *assets_path = get_config_path(NAME);
+    const char *assets_path = get_config_path(NAME, debug);
     if (assets_path == NULL) {
         free_data(data);
         return 1;
@@ -58,7 +69,7 @@ int main(int argc, char **argv) {
     size_t assets_last_mod_time = get_path_last_mod_time(assets_path);
     if (data->last_cache_time == 0 || assets_last_mod_time > data->last_cache_time) {
         // Invalidate cache
-        cache_data(data, assets_path, system_time);
+        cache_data(data, assets_path, system_time, debug);
     }
 
     if (!print_random_art(STDOUT_FILENO, data, assets_path)) {

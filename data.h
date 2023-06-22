@@ -22,7 +22,7 @@ struct data *read_or_create_data(const char *dir, const char *name);
 
 int write_data(struct data *data, const char *dir, const char *name);
 
-int cache_data(struct data *data, const char *assets_path, time_t system_time);
+int cache_data(struct data *data, const char *assets_path, time_t system_time, int debug);
 
 void print_data(FILE *out, struct data *data);
 

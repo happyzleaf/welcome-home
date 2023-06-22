@@ -40,7 +40,7 @@ int print_random_art(int fd, struct data *data, const char *assets_path) {
 
     size_t path_len = strnlen(assets_path, PATH_MAX) + strnlen(data->cache[min_delta_index]->asset, PATH_MAX) + 2;
     if (path_len > PATH_MAX) {
-        fprintf(stderr, "ERROR: Asset path exceeded PATH_MAX.");
+        fprintf(stderr, "ERROR: Asset path exceeds PATH_MAX.");
         return 0;
     }
 

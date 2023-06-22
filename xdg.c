@@ -42,15 +42,15 @@ int dir_exists(const char *path) {
     return lstat(path, &st) == 0 && S_ISDIR(st.st_mode);
 }
 
-char *get_xdg_path(const char *xdg_home_env, const char *xdg_dirs_env, const char *home_sub_dir, const char *dir, int search) {
+char *get_xdg_path(const char *xdg_home_env, const char *xdg_dirs_env, const char *home_sub_dir, const char *dir, int search, int debug) {
     // ${xdg_home_env}/{dir}
     char *xdg_home = getenv(xdg_home_env);
     if (dir_exists(xdg_home)) {
         size_t path_len = strnlen(xdg_home, PATH_MAX) + strnlen(dir, PATH_MAX) + 2;
         if (path_len > PATH_MAX) {
-            #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Ignoring XDG_HOME as it exceeds PATH_MAX.\n"); // TODO print name?
-            #endif
+            if (debug) {
+                fprintf(stderr, "DEBUG: Ignoring '%s/%s' as it exceeds PATH_MAX.\n", xdg_home, dir);
+            }
         } else {
             char *path = malloc(path_len);
             if (path == NULL) {
@@ -86,9 +86,9 @@ char *get_xdg_path(const char *xdg_home_env, const char *xdg_dirs_env, const cha
         while (xdg_dir != NULL) {
             size_t path_len = strnlen(xdg_dir, PATH_MAX) + strnlen(dir, PATH_MAX) + 2;
             if (path_len > PATH_MAX) {
-                #ifdef DEBUG
-                fprintf(stderr, "DEBUG: Ignoring XDG_DIRS as it exceeds PATH_MAX.\n"); // TODO print name?
-                #endif
+                if (debug) {
+                    fprintf(stderr, "DEBUG: Ignoring '%s/%s' as it exceeds PATH_MAX.\n", xdg_dir, dir);
+                }
             } else {
                 char *path = malloc(path_len);
                 if (path == NULL) {
@@ -114,9 +114,9 @@ char *get_xdg_path(const char *xdg_home_env, const char *xdg_dirs_env, const cha
     if (dir_exists(home)) {
         size_t path_len = strnlen(home, PATH_MAX) + strnlen(home_sub_dir, PATH_MAX) + strnlen(dir, PATH_MAX) + 3;
         if (path_len > PATH_MAX) {
-            #ifdef DEBUG
-            fprintf(stderr, "DEBUG: Ignoring HOME as it exceeds PATH_MAX.\n");
-            #endif
+            if (debug) {
+                fprintf(stderr, "DEBUG: Ignoring '%s/%s/%s' as it exceeds PATH_MAX.\n", home, home_sub_dir, dir);
+            }
         }
         char *path = malloc(path_len);
         if (path == NULL) {
@@ -144,13 +144,13 @@ char *get_xdg_path(const char *xdg_home_env, const char *xdg_dirs_env, const cha
         free(path);
     }
 
-    return search ? get_xdg_path(xdg_home_env, xdg_dirs_env, home_sub_dir, dir, 0) : NULL;
+    return search ? get_xdg_path(xdg_home_env, xdg_dirs_env, home_sub_dir, dir, 0, debug) : NULL;
 }
 
-char *get_config_path(const char *config_dir) {
-    return get_xdg_path("XDG_CONFIG_HOME", "XDG_CONFIG_DIRS", ".config", config_dir, 1);
+char *get_config_path(const char *config_dir, int debug) {
+    return get_xdg_path("XDG_CONFIG_HOME", "XDG_CONFIG_DIRS", ".config", config_dir, 1, debug);
 }
 
-char *get_data_path(const char *data_dir) {
-    return get_xdg_path("XDG_DATA_HOME", "XDG_DATA_DIRS", ".local/share", data_dir, 1);
+char *get_data_path(const char *data_dir, int debug) {
+    return get_xdg_path("XDG_DATA_HOME", "XDG_DATA_DIRS", ".local/share", data_dir, 1, debug);
 }
