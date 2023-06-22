@@ -176,7 +176,7 @@ int cache_data(struct data *data, const char *assets_path, time_t system_time, i
     rewinddir(directory);
 
     char *line_buffer = NULL;
-    size_t line_buffer_size = 0; // I hate this variable so much
+    size_t line_buffer_size = 0;
     int index = -1;
     while ((entry = readdir(directory)) != NULL) {
         if (!is_file_or_sym(entry, path_buffer, assets_path, assets_path_len, debug)) {
