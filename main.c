@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
                 debug = 1;
                 break;
             default:
-                fprintf(stdout, "USAGE: %s [-d]\n", argc == 0 ? "welcome-home" : argv[0]);
+                fprintf(stdout, "USAGE: %s [-a] [-d]\n", argc == 0 ? "welcome-home" : argv[0]);
                 return 1;
         }
     }
@@ -47,12 +47,17 @@ int main(int argc, char **argv) {
     }
 
     if (debug) {
-        fprintf(stdout, "DEBUG: data = '%s'.\n", data_path);
+        fprintf(stdout, "DEBUG: data_path = '%s'.\n", data_path);
     }
 
     struct data *data = read_or_create_data(data_path, ".data");
     if (data == NULL) {
         return 1;
+    }
+
+    if (debug) {
+        fprintf(stdout, "DEBUG: ");
+        print_data(stdout, data);
     }
 
     if (!always && data->last_print_time > system_date) {
@@ -77,7 +82,7 @@ int main(int argc, char **argv) {
     }
 
     if (debug) {
-        fprintf(stdout, "DEBUG: assets = '%s'.\n", assets_path);
+        fprintf(stdout, "DEBUG: assets_path = '%s'.\n", assets_path);
     }
 
     size_t assets_last_mod_time = get_path_last_mod_time(assets_path);

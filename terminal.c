@@ -16,7 +16,7 @@ void get_terminal_size(int fd, int *cols, int *rows) {
     struct winsize size;
     ioctl(fd, TIOCGWINSZ, &size);
     *cols = size.ws_col;
-    *rows = size.ws_row;
+    *rows = size.ws_row + OFFSET_Y;
 }
 
 int print_random_art(int out, struct data *data, const char *assets_path, int debug) {
@@ -32,11 +32,15 @@ int print_random_art(int out, struct data *data, const char *assets_path, int de
     int rows;
     get_terminal_size(out, &cols, &rows);
 
+    if (debug) {
+        fprintf(stdout, "DEBUG: terminal size: %dx%d\n", cols, rows);
+    }
+
     int min_delta_index = -1;
     int min_delta = INT_MAX;
     for (int i = 0; i < data->cache_len; ++i) {
         int delta_x = cols - data->cache[i]->cols;
-        int delta_y = rows - data->cache[i]->rows + OFFSET_Y;
+        int delta_y = rows - data->cache[i]->rows;
 
         if (delta_x < 0 || delta_y < 0) {
             // Out of bounds
