@@ -56,6 +56,8 @@ int print_random_art(int out, struct data *data, const char *assets_path, int de
         if (debug) {
             fprintf(stderr, "DEBUG: No art available for this size.\n");
         }
+
+        return 1;
     }
 
     if (debug) {
